@@ -15,6 +15,11 @@ public:
 	void HandleSpecial(int key, int x, int y);
 
 	bool ShouldStartGame() const;
+	bool ShouldShowInstructions() const;
+	bool ShouldShowHighScores() const;
+	bool IsDifficultyEnabled() const;
+
+	void SetGamerTag(const std::string& tag);
 
 private:
 	enum MenuItem {
@@ -28,6 +33,10 @@ private:
 	std::vector<std::shared_ptr<Asteroid>> mAsteroids;
 	int mSelected;
 	bool mStartGame;
+	bool mShowInstructions;
+	bool mShowHighScores;
+	bool mDifficultyEnabled;
+	std::string mGamerTag;
 
 	void RenderText(float x, float y, const char* text);
 };

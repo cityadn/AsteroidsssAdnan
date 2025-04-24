@@ -9,8 +9,7 @@ const char* menuLabels[] = {
 	"Quit"
 };
 
-MainMenu::MainMenu() : mSelected(0), mStartGame(false)
-{
+MainMenu::MainMenu() : mSelected(0), mStartGame(false), mShowInstructions(false), mShowHighScores(false), mDifficultyEnabled(false) {
 	srand((unsigned)time(nullptr));
 	for (int i = 0; i < 10; ++i) {
 		auto asteroid = std::make_shared<Asteroid>();
@@ -19,7 +18,6 @@ MainMenu::MainMenu() : mSelected(0), mStartGame(false)
 		mAsteroids.push_back(asteroid);
 	}
 }
-
 void MainMenu::Update() {
 	for (auto& asteroid : mAsteroids) {
 		asteroid->Update(16);
@@ -38,6 +36,16 @@ void MainMenu::Display() {
 		RenderText(-0.1f, 0.3f - i * 0.1f, menuLabels[i]);
 	}
 
+	if (mShowInstructions) {
+		RenderText(-0.1f, 0.3f, "Use arrow keys to navigate and Enter to select.");
+		RenderText(-0.1f, 0.2f, "Press Esc to exit.");
+	}
+
+	if (mShowHighScores) {
+		RenderText(-0.1f, 0.3f, "High Scores:");
+		// Display high scores here
+	}
+
 	glutSwapBuffers();
 }
 
@@ -53,6 +61,12 @@ void MainMenu::HandleKeyboard(unsigned char key, int, int) {
 	if (key == 13) { // Enter 
 		if (mSelected == START_GAME) {
 			mStartGame = true;
+		}
+		else if (mSelected == INSTRUCTIONS) {
+			mShowInstructions = !mShowInstructions;
+		}
+		else if (mSelected == HIGH_SCORES) {
+			mShowHighScores = !mShowHighScores;
 		}
 		else if (mSelected == QUIT) {
 			exit(0);
@@ -75,3 +89,19 @@ void MainMenu::HandleSpecial(int key, int, int) {
 bool MainMenu::ShouldStartGame() const {
 	return mStartGame;
 }
+
+bool MainMenu::ShouldShowInstructions() const {
+	return mShowInstructions;
+}
+
+bool MainMenu::ShouldShowHighScores() const {
+	return mShowHighScores;
+}	
+
+bool MainMenu::IsDifficultyEnabled() const {
+	return mDifficultyEnabled;
+}	
+
+void MainMenu::SetGamerTag(const std::string& tag) {
+	mGamerTag = tag;
+}	
