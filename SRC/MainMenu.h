@@ -11,6 +11,7 @@ public:
 	void Init();
 	void Display();
 	void Update();
+	void RenderText(float x, float y, const char* text);
 	void HandleKeyboard(unsigned char key, int x, int y);
 	void HandleSpecial(int key, int x, int y);
 
@@ -20,6 +21,8 @@ public:
 	bool IsDifficultyEnabled() const;
 
 	void SetGamerTag(const std::string& tag);
+	void SetStartGameFlag(bool flag);
+	void Reset() { mStartGame = false; }
 
 private:
 	enum MenuItem {
@@ -37,7 +40,5 @@ private:
 	bool mShowHighScores;
 	bool mDifficultyEnabled;
 	std::string mGamerTag;
-
-	void RenderText(float x, float y, const char* text);
 };
 

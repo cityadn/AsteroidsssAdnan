@@ -292,6 +292,32 @@ shared_ptr<GameObject> Asteroids::CreateExplosion()
 	return explosion;
 }
 
+void Asteroids::Update() {
+	// Update all game objects here
+	// Update spaceship, bullets, asteroids, etc.
+	mGameWorld->Update(16);
+	for (auto& asteroid : mAsteroids) {
+		asteroid->Update(16);
+	}
+	for (auto& bullet : mBullets) {
+		bullet->Update(16);
+	}
+}
+
+void Asteroids::Render() {
+	// Render the spaceship, asteroids, bullets, etc.
+	mGameWorld->Update(16);
+	mSpaceship->Render();
+	for (auto& asteroid : mAsteroids) {
+		asteroid->Render();
+	}
+	for (auto& bullet : mBullets) {
+		bullet->Render();
+	}
+	for (auto& explosion : mExplosions) {
+		explosion->Render();
+	}
+}
 
 
 

@@ -104,4 +104,8 @@ bool MainMenu::IsDifficultyEnabled() const {
 
 void MainMenu::SetGamerTag(const std::string& tag) {
 	mGamerTag = tag;
-}	
+}
+
+void MainMenu::SetStartGameFlag(bool flag) {
+	mStartGame = flag;
+}

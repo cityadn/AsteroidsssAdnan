@@ -35,10 +35,6 @@ void DisplayCallback() {
 	else if (currentState == STATE_GAME) {
 		asteroids->Render();
 	}
-	else if (currentState == STATE_GAME_OVER) {
-		// Display game over screen and ask for gamer tag
-		
-	}
 
 	glutSwapBuffers();
 }
@@ -54,10 +50,11 @@ void ReshapeCallback(int w, int h) {
 
 // GLUT idle function
 void IdleCallback() {
-	if (currentState == STATE_MENU) {
-		menu->Update();
+	if (currentState == STATE_MENU && menu->ShouldStartGame()) {
+		currentState = STATE_GAME;
+		menu->Reset();
 	}
-	else if (currentState == STATE_GAME) {
+	else if (currentState == STATE_GAME && asteroids) {
 		asteroids->Update();
 	}
 	glutPostRedisplay(); // keeps screen updating
@@ -88,7 +85,8 @@ void HandleKeyboard(unsigned char key, int x, int y) {
 		menu->HandleKeyboard(key, x, y);
 		if (menu->ShouldStartGame()) {
 			StartGame();
-			isGameStarted = true;
+			menu->Reset();
+			//isGameStarted = true;
 		}
 	}
 	else if (currentState == STATE_GAME_OVER) {

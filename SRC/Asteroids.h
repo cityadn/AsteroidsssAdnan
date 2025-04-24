@@ -23,6 +23,9 @@ public:
 	virtual void Start(void);
 	virtual void Stop(void);
 
+	void Update();
+	void Render();
+
 	// Declaration of IKeyboardListener interface ////////////////////////////////
 
 	void OnKeyPressed(uchar key, int x, int y);
@@ -48,13 +51,26 @@ public:
 	void OnTimer(int value);
 
 private:
+	int mLives;
+	int mScore;
+
 	shared_ptr<Spaceship> mSpaceship;
 	shared_ptr<GUILabel> mScoreLabel;
 	shared_ptr<GUILabel> mLivesLabel;
 	shared_ptr<GUILabel> mGameOverLabel;
 
+	GameObjectList mAsteroids;
+	GameObjectList mBullets;
+	GameObjectList mExplosions;
+
 	uint mLevel;
 	uint mAsteroidCount;
+
+	shared_ptr<Shape> mSpaceship_shape;
+	shared_ptr<Shape> mAsteroid_shape;
+	shared_ptr<Shape> mBullet_shape;
+	shared_ptr<Shape> mExplosion_shape;
+	shared_ptr<Shape> mThrsuterShape;
 
 	void ResetSpaceship();
 	shared_ptr<GameObject> CreateSpaceship();
