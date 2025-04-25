@@ -2,6 +2,7 @@
 #include "GameUtil.h"
 #include "Asteroid.h"
 #include "BoundingShape.h"
+#include "BoundingSphere.h"
 #include "Spaceship.h"
 #include "Bullet.h"
 #include "GameObjectType.h"
@@ -66,10 +67,14 @@ bool Asteroid::CollisionTest(shared_ptr<GameObject> o)
 {
 	if (o->GetType() == GameObjectType("Bullet") || o->GetType() == GameObjectType("Spaceship"))
 	{
+		GLVector3f thisPos = GetPosition();
 		GLVector2f otherPos = o->GetPosition();
-		float otherRadius = 4.0f;
 
-		float dist = (GetPosition() - otherPos).length();
+		float otherRadius = 4.0f;
+		float dx = thisPos.x - otherPos.x;
+		float dy = thisPos.y - otherPos.y;
+		float dist = sqrt(dx * dx + dy * dy);
+
 		return dist < (mBoundingCircle.radius + otherRadius);
 	}
 	return false;
