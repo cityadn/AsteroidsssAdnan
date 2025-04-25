@@ -7,6 +7,7 @@
 #include "GameObjectType.h"
 #include "IScoreListener.h"
 #include "IGameWorldListener.h"
+#include "BoundingSphere.h"
 
 class ScoreKeeper : public IGameWorldListener
 {
@@ -20,7 +21,24 @@ public:
 	void OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 	{
 		if (object->GetType() == GameObjectType("Asteroid")) {
- 			mScore += 10;
+			float radius = 0.0f;
+			auto shape = object->GetBoundingShape();
+			if (shape) {
+				auto bs = dynamic_pointer_cast<BoundingSphere>(shape);
+				if (bs) {
+					radius = bs->GetRadius();
+				}
+			}
+
+			if (radius > 4.0f) {
+				// Add score
+				mScore += 20;
+			}
+			else {
+				// Add score
+				mScore += 10;
+			}
+
 			FireScoreChanged();
 		}
 	}
@@ -33,7 +51,7 @@ public:
 	void FireScoreChanged()
 	{
 		// Send message to all listeners
-		for (ScoreListenerList::iterator lit = mListeners.begin(); lit != mListeners.end(); ++lit) {
+		for (auto lit = mListeners.begin(); lit != mListeners.end(); ++lit) {
 			(*lit)->OnScoreChanged(mScore);
 		}
 	}
