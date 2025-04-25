@@ -4,20 +4,30 @@
 #include "BoundingShape.h"
 #include "Spaceship.h"
 #include "Bullet.h"
+#include "GameObjectType.h"
+#include "GameWorld.h"
 
 using namespace std;
 
-Asteroid::Asteroid()
-	: GameObject("Asteroid", GLVector3f(0, 0, 0), GLVector3f(0, 0, 0), GLVector3f(0, 0, 0), 0, 0), mSize("Large")
+Asteroid::Asteroid(void)
+	: GameObject("Asteroid"),
+	mSize("Large"),
+mBoundingCircle(GLVector3f(0, 0, 0), 5.0f)
 {
-	mBoundingCircle = BoundingCircle(GLVector3f(0, 0, 0), 5.0f);
-}
+	mRadius = 10.0f;
+
+	// Randomize initial position and velocity
+	GLVector3f pos = GLVector3f(rand() % 200 - 100, rand() % 200 - 100, 0);
+	GLVector3f vel = GLVector3f(rand() % 40 - 20, rand() % 40 - 20, 0);
+	SetPosition(pos);
+	SetVelocity(vel);
+	}
 
 Asteroid::Asteroid(GLVector3f p, GLVector3f v, GLVector3f a, GLfloat h, GLfloat r, std::string size)
-	: GameObject("Asteroid", p, v, a, h, r), mSize(size), mBoundingCircle(p, 5.0f)
+	: GameObject("Asteroid", p, v, a, h, r), mSize(size), mBoundingCircle(p, 5.0f), mRadius(r)
 {
 	//mBoundingShape = make_shared<BoundingShape>(this, 2.0f);
-	mBoundingCircle = BoundingCircle(p, r);
+	//mBoundingCircle = BoundingCircle(p, r);
 }
 
 Asteroid::~Asteroid(void)
@@ -54,10 +64,15 @@ void Asteroid::Render()
 
 bool Asteroid::CollisionTest(shared_ptr<GameObject> o)
 {
-	if (GetType() == o->GetType()) return false;
-	if (mBoundingShape.get() == NULL) return false;
-	if (o->GetBoundingShape().get() == NULL) return false;
-	return mBoundingShape->CollisionTest(o->GetBoundingShape());
+	if (o->GetType() == GameObjectType("Bullet") || o->GetType() == GameObjectType("Spaceship"))
+	{
+		GLVector2f otherPos = o->GetPosition();
+		float otherRadius = 4.0f;
+
+		float dist = (GetPosition() - otherPos).length();
+		return dist < (mBoundingCircle.radius + otherRadius);
+	}
+	return false;
 }
 
 void Asteroid::OnCollision(const GameObjectList& objects)
@@ -91,31 +106,37 @@ void Asteroid::OnCollision(const GameObjectList& objects)
 
 void Asteroid::Bounce(shared_ptr<Asteroid> other)
 {
-	GLVector3f direction = mPosition - other->mPosition;
-	direction.normalize();
+	GLVector3f normal = (GetPosition() - other->GetPosition()).unit();
+	GLVector3f v1 = GetVelocity();
+	GLVector3f v2 = other->GetVelocity();
 
-	// Calculate relative velcocity (velocity difference)
-	GLVector3f relativeVelocity = mVelocity - other->mVelocity;
-
-	// Dot product of relative velocity and direction
-	float speed = relativeVelocity.dot(direction);
-
-	// Bounce effect - reverse velocities based on collision angle
-	if (speed > 0) {
-		// Reflect velocities
-		GLVector3f impulse = direction;
-		impulse.x *= 2 * speed;
-		impulse.y *= 2 * speed;
-		impulse.z *= 2 * speed;
-
-		mVelocity -= impulse;
-		other->mVelocity += impulse;
-	}
+	GLVector3f new_v1 = v1 - normal * (v1 - v2).dot(normal);
+	GLVector3f new_v2 = v2 - normal * (v2 - v1).dot(normal);
+	
+	SetVelocity(new_v1);
+	other->SetVelocity(new_v2);
 }
 
 /** Create a smaller asteroid. */
 shared_ptr<Asteroid> Asteroid::CreateSmallerAsteroid()
 {
-	GLVector3f randVel(rand() % 10 - 5, rand() % 10 - 5, 0); // Random small velocity
-	return make_shared<Asteroid>(mPosition, randVel, GLVector3f(), 0, 0, "Small");
+	GLVector3f newVel = GLVector3f(rand() % 40 - 20, rand() % 40 - 20, 0);
+	GLfloat newRadius = mRadius / 2.0f;
+
+	std::string newSize;
+	if (mSize == "Large") {
+		newSize = "Medium";
+	}
+	else if (mSize == "Medium") {
+		newSize = "Small";
+	}
+	else {
+		return nullptr;
+	}
+
+	shared_ptr<Asteroid> smaller = make_shared<Asteroid>(GetPosition(), newVel, GLVector3f(0, 0, 0), 0, newRadius, newSize);
+
+	smaller->SetBoundingShape(make_shared<BoundingSphere>(smaller, newRadius));
+
+	return smaller;
 }
