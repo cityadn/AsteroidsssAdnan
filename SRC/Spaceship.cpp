@@ -43,12 +43,10 @@ void Spaceship::Update(int t)
 /** Render this spaceship. */
 void Spaceship::Render(void)
 {
-	if (mSpaceshipShape.get() != NULL) mSpaceshipShape->Render();
+	if (mSpaceshipShape) mSpaceshipShape->Render();
 
 	// If ship is thrusting
-	if ((mThrust > 0) && (mThrusterShape.get() != NULL)) {
-		mThrusterShape->Render();
-	}
+	if ((mThrust > 0) && (mThrusterShape)) mThrusterShape ->Render();
 
 	GameObject::Render();
 }
@@ -102,5 +100,35 @@ bool Spaceship::CollisionTest(shared_ptr<GameObject> o)
 
 void Spaceship::OnCollision(const GameObjectList &objects)
 {
-	mWorld->FlagForRemoval(GetThisPtr());
+	for (auto it = objects.begin(); it != objects.end(); ++it) {
+		shared_ptr<GameObject> obj = *it;
+		if (!obj) continue;
+
+		std::string type = obj->GetType();
+		if (type == "Asteroid") {
+			float radius = 0.0f;
+			auto shape = obj->GetBoundingShape();
+			if (shape) {
+				auto bs = dynamic_pointer_cast<BoundingSphere>(shape);
+				if (bs) {
+					radius = bs->GetRadius();
+				}
+
+				if (radius <= 4.0f) {
+					// Bounce
+					GLVector3f v1 = mVelocity;
+					GLVector3f v2 = obj->GetVelocity();
+
+					mVelocity = v2 * 0.5f;
+					obj->SetVelocity(v1 * 0.5f);
+				}
+				else {
+					if (mWorld) {
+						mWorld->FlagForRemoval(GetThisPtr());
+						mWorld->FlagForRemoval(obj);
+					}
+				}
+			}
+		}
+	}
 }
