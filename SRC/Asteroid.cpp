@@ -2,33 +2,22 @@
 #include "GameUtil.h"
 #include "Asteroid.h"
 #include "BoundingShape.h"
+#include "Spaceship.h"
+#include "Bullet.h"
 
 using namespace std;
 
-Asteroid::Asteroid(void) : GameObject("Asteroid"), mSize("Large")
+Asteroid::Asteroid()
+	: GameObject("Asteroid", GLVector3f(0, 0, 0), GLVector3f(0, 0, 0), GLVector3f(0, 0, 0), 0, 0), mSize("Large")
 {
-	mAngle = rand() % 360;
-	mRotation = 0; // rand() % 90;
-	mPosition.x = rand() / 2;
-	mPosition.y = rand() / 2;
-	mPosition.z = 0.0;
-	mVelocity.x = 10.0 * cos(DEG2RAD*mAngle);
-	mVelocity.y = 10.0 * sin(DEG2RAD*mAngle);
-	mVelocity.z = 0.0;
+	mBoundingCircle = BoundingCircle(GLVector3f(0, 0, 0), 5.0f);
 }
 
 Asteroid::Asteroid(GLVector3f p, GLVector3f v, GLVector3f a, GLfloat h, GLfloat r, std::string size)
-	: GameObject("Asteroid", p, v, a, h, r), mSize(size)
+	: GameObject("Asteroid", p, v, a, h, r), mSize(size), mBoundingCircle(p, 5.0f)
 {
-
-}
-
-Asteroid::Asteroid(const Asteroids& a) : GameObject(a), mSize(a.mSize)
-{
-	mAngle = a.mAngle;
-	mRotation = a.mRotation;
-	mPosition = a.mPosition;
-	mVelocity = a.mVelocity;
+	//mBoundingShape = make_shared<BoundingShape>(this, 2.0f);
+	mBoundingCircle = BoundingCircle(p, r);
 }
 
 Asteroid::~Asteroid(void)
@@ -37,6 +26,30 @@ Asteroid::~Asteroid(void)
 
 void Asteroid::Update(int t) {
 	GameObject::Update(t);
+	mBoundingCircle.center = GetPosition();
+}
+
+void Asteroid::Render()
+{
+	glPushMatrix();
+
+	glTranslatef(mPosition.x, mPosition.y, mPosition.z);
+
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glutSolidSphere(mBoundingCircle.radius, 10, 10);
+	GameObject::Render();
+
+	glBegin(GL_POLYGON);
+	float radius = 2.0f;
+	for (int i = 0; i < 360; i += 10) {
+		float angle = 3.14159f / 180.0f;
+		float x = radius * cos(angle * i);
+		float y = radius * sin(angle * i);
+		glVertex2f(x, y);
+	}
+	glEnd();
+
+	glPopMatrix();
 }
 
 bool Asteroid::CollisionTest(shared_ptr<GameObject> o)
@@ -49,36 +62,32 @@ bool Asteroid::CollisionTest(shared_ptr<GameObject> o)
 
 void Asteroid::OnCollision(const GameObjectList& objects)
 {
-	for (const auto& obj : objects) {
+	for (auto it = objects.begin(); it != objects.end(); ++it) {
+		auto obj = *it;
+		if (!obj) continue;
 		if (obj->GetType() == GameObjectType("Asteroid")) {
 			shared_ptr<Asteroid> a = std::static_pointer_cast<Asteroid>(obj);
-			Bounce(other);
+			Bounce(a);
 		}
-
 		if (obj->GetType() == GameObjectType("Spaceship")) {
 			shared_ptr<Spaceship> s = static_pointer_cast<Spaceship>(obj);
 			mWorld->FlagForRemoval(GetThisPtr());
-			mWorld->FlagForRemoval(spaceship);
-			spaceship->OnCollision(objects);
+			mWorld->FlagForRemoval(s);
+			s->OnCollision(objects);
 		}
-
 		if (obj->GetType() == GameObjectType("Bullet")) {
 			shared_ptr<Bullet> bullet = static_pointer_cast<Bullet>(obj);
 			shared_ptr<Asteroid> smallAsteroid1 = CreateSmallerAsteroid();
 			shared_ptr<Asteroid> smallAsteroid2 = CreateSmallerAsteroid();
 			mWorld->AddObject(smallAsteroid1);
 			mWorld->AddObject(smallAsteroid2);
-
 			mWorld->FlagForRemoval(GetThisPtr());
 			mWorld->FlagForRemoval(bullet);
-
 			// Award score based on asteroid size
 			int score = (mSize == "Large") ? 100 : 50;
-			mWorld->GetScoreKeeper()->AddScore(score);
 		}
-
 	}
-}
+		}
 
 void Asteroid::Bounce(shared_ptr<Asteroid> other)
 {
@@ -89,19 +98,24 @@ void Asteroid::Bounce(shared_ptr<Asteroid> other)
 	GLVector3f relativeVelocity = mVelocity - other->mVelocity;
 
 	// Dot product of relative velocity and direction
-	float speed = relativeVeclocity.dot(direction);
+	float speed = relativeVelocity.dot(direction);
 
 	// Bounce effect - reverse velocities based on collision angle
 	if (speed > 0) {
 		// Reflect velocities
-		mVelocity -= 2 * speed * direction;
-		other->mVelocity += 2 * speed * direction;
+		GLVector3f impulse = direction;
+		impulse.x *= 2 * speed;
+		impulse.y *= 2 * speed;
+		impulse.z *= 2 * speed;
+
+		mVelocity -= impulse;
+		other->mVelocity += impulse;
 	}
 }
 
 /** Create a smaller asteroid. */
 shared_ptr<Asteroid> Asteroid::CreateSmallerAsteroid()
 {
-	GLVector3f randomVelocity(rand() % 10 - 5, rand() % 10 - 5, 0); // Random small velocity
-	return make_shared<Asteroid>(mPosition, randomVelocity, GLVector3f(), 0, 0, "Small");
+	GLVector3f randVel(rand() % 10 - 5, rand() % 10 - 5, 0); // Random small velocity
+	return make_shared<Asteroid>(mPosition, randVel, GLVector3f(), 0, 0, "Small");
 }

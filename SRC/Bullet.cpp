@@ -1,18 +1,15 @@
 #include "GameWorld.h"
 #include "Bullet.h"
 #include "BoundingSphere.h"
+#include "GameUtil.h"
+#include "GameObject.h"
+#include "Asteroid.h"
 
 // PUBLIC INSTANCE CONSTRUCTORS ///////////////////////////////////////////////
 
 /** Constructor. Bullets live for 2s by default. */
-Bullet::Bullet()
-	: GameObject("Bullet"), mTimeToLive(2000)
-{
-}
-
-/** Construct a new bullet with given position, velocity, acceleration, angle, rotation and lifespan. */
-Bullet::Bullet(GLVector3f p, GLVector3f v, GLVector3f a, GLfloat h, GLfloat r, int ttl)
-	: GameObject("Bullet", p, v, a, h, r), mTimeToLive(ttl)
+Bullet::Bullet(GLVector3f p, GLVector3f v, GLVector3f a, GLfloat h, GLfloat r, int tt1)
+	: GameObject("Bullet", p, v, a, h, r), mTimeToLive(tt1)
 {
 }
 
@@ -33,16 +30,16 @@ Bullet::~Bullet(void)
 /** Update bullet, removing it from game world if necessary. */
 void Bullet::Update(int t)
 {
-	// Update position/velocity
-	GameObject::Update(t);
 	// Reduce time to live
-	mTimeToLive = mTimeToLive - t;
+	mTimeToLive -= t;
 	// Ensure time to live isn't negative
-	if (mTimeToLive < 0) { mTimeToLive = 0; }
+	if (mTimeToLive < 0 && mWorld) { mTimeToLive = 0; }
 	// If time to live is zero then remove bullet from world
 	if (mTimeToLive == 0) {
 		if (mWorld) mWorld->FlagForRemoval(GetThisPtr());
 	}
+	// Update position/velocity
+	GameObject::Update(t);
 
 }
 
@@ -56,5 +53,35 @@ bool Bullet::CollisionTest(shared_ptr<GameObject> o)
 
 void Bullet::OnCollision(const GameObjectList& objects)
 {
-	mWorld->FlagForRemoval(GetThisPtr());
+	for (auto it = objects.begin(); it != objects.end(); ++it) {
+		auto obj = *it;
+		if (!obj || obj->GetType() != GameObjectType("Asteroid")) continue;
+
+		float radius = 0.0f;
+		auto shape = obj->GetBoundingShape();
+		if (shape) {
+			auto bs = dynamic_pointer_cast<BoundingSphere>(shape);
+			if (bs) {
+				radius = bs->GetRadius();
+			}
+		}
+
+		if (radius > 4.0f && mWorld) {
+			for (int i = 0; i < 2;++i) {
+				GLVector3f pos = obj->GetPosition();
+				GLVector3f vel(rand() % 6 - 3, rand() % 6 - 3, 0);
+				shared_ptr<GameObject> smallAsteroid(new Asteroid(pos, vel));
+				smallAsteroid->SetBoundingShape(make_shared<BoundingSphere>(smallAsteroid, 2.0f));
+				mWorld->AddObject(smallAsteroid);
+			}
+		}
+
+		if (mWorld) {
+			mWorld->FlagForRemoval(obj);
+		}
+	}
+
+	if (mWorld) {
+		mWorld->FlagForRemoval(GetThisPtr());
+	}
 }
