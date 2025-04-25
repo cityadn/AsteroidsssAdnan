@@ -17,14 +17,11 @@ class GUILabel;
 class Asteroids : public GameSession, public IKeyboardListener, public IGameWorldListener, public IScoreListener, public IPlayerListener
 {
 public:
-	Asteroids(int argc, char *argv[]);
+	Asteroids(int argc, char* argv[]);
 	virtual ~Asteroids(void);
 
 	virtual void Start(void);
 	virtual void Stop(void);
-
-	void Update();
-	void Render();
 
 	// Declaration of IKeyboardListener interface ////////////////////////////////
 
@@ -51,33 +48,20 @@ public:
 	void OnTimer(int value);
 
 private:
-	int mLives;
-	int mScore;
-
 	shared_ptr<Spaceship> mSpaceship;
 	shared_ptr<GUILabel> mScoreLabel;
 	shared_ptr<GUILabel> mLivesLabel;
 	shared_ptr<GUILabel> mGameOverLabel;
 
-	GameObjectList mAsteroids;
-	GameObjectList mBullets;
-	GameObjectList mExplosions;
-
 	uint mLevel;
 	uint mAsteroidCount;
-
-	shared_ptr<Shape> mSpaceship_shape;
-	shared_ptr<Shape> mAsteroid_shape;
-	shared_ptr<Shape> mBullet_shape;
-	shared_ptr<Shape> mExplosion_shape;
-	shared_ptr<Shape> mThrsuterShape;
 
 	void ResetSpaceship();
 	shared_ptr<GameObject> CreateSpaceship();
 	void CreateGUI();
 	void CreateAsteroids(const uint num_asteroids);
 	shared_ptr<GameObject> CreateExplosion();
-	
+
 	const static uint SHOW_GAME_OVER = 0;
 	const static uint START_NEXT_LEVEL = 1;
 	const static uint CREATE_NEW_PLAYER = 2;
