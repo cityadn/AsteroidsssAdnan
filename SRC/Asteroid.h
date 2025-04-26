@@ -17,7 +17,7 @@ public:
 	Asteroid(void);
 	Asteroid(GLVector3f p, GLVector3f v, GLVector3f a, GLfloat h, GLfloat r, std::string size);
 	Asteroid(const Asteroid& a);
-	Asteroid(GLVector3f pos, GLVector3f vel) 
+	Asteroid(GLVector3f pos, GLVector3f vel)
 		: GameObject("Asteroid", pos, vel, GLVector3f(0, 0, 0), 0, 0), mSize("Large")
 	{
 		mBoundingCircle = BoundingCircle(pos, 5.0f);
@@ -34,7 +34,7 @@ public:
 
 protected:
 	void Bounce(shared_ptr<Asteroid> other);
-	
+
 private:
 	std::string mSize;
 	struct BoundingCircle {
@@ -51,7 +51,6 @@ private:
 
 	BoundingCircle mBoundingCircle;
 	float mRadius;
-	// see if this gets committed
 };
 
 #endif

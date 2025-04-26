@@ -18,7 +18,7 @@ Bullet::Bullet(GLVector3f p, GLVector3f v, GLVector3f a, GLfloat h, GLfloat r, i
 /** Copy constructor. */
 Bullet::Bullet(const Bullet& b)
 	: GameObject(b),
-	  mTimeToLive(b.mTimeToLive)
+	mTimeToLive(b.mTimeToLive)
 {
 }
 
@@ -54,6 +54,9 @@ bool Bullet::CollisionTest(shared_ptr<GameObject> o)
 
 void Bullet::OnCollision(const GameObjectList& objects)
 {
+	GameObjectList objectsToRemove;
+	GameObjectList newObjectsToAdd;
+
 	for (auto it = objects.begin(); it != objects.end(); ++it) {
 		auto obj = *it;
 		if (!obj || obj->GetType() != GameObjectType("Asteroid")) continue;
@@ -63,6 +66,11 @@ void Bullet::OnCollision(const GameObjectList& objects)
 
 		std::shared_ptr<Asteroid> smallAsteroid = std::make_shared<Asteroid>(pos, vel);
 		smallAsteroid->SetBoundingShape(std::make_shared<BoundingSphere>(smallAsteroid, 2.0f));
+
+		std::cout << "Bullet collision with asteroid. Object use_count: " << obj.use_count() << std::endl;
+
+		objectsToRemove.push_back(obj);
+		newObjectsToAdd.push_back(smallAsteroid);
 		/*float radius = 0.0f;
 		auto shape = obj->GetBoundingShape();
 		if (shape) {
@@ -83,11 +91,15 @@ void Bullet::OnCollision(const GameObjectList& objects)
 		}*/
 
 		if (mWorld) {
-			mWorld->FlagForRemoval(obj);
+			for (auto& newObj : newObjectsToAdd) {
+				mWorld->AddObject(newObj); // Add new asteroid to world
+				std::cout << "Flagging object for removal. Object use_count before removal: " << obj.use_count() << std::endl;
+			}
+			for (auto& obj : objectsToRemove) {
+				mWorld->FlagForRemoval(obj); // Flag old object for removal
+			}
+			// Flag the bullet for removal as well
+			mWorld->FlagForRemoval(GetThisPtr());
 		}
-	}
-
-	if (mWorld) {
-		mWorld->FlagForRemoval(GetThisPtr());
 	}
 }

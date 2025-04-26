@@ -47,7 +47,7 @@ void Spaceship::Render(void)
 	if (mSpaceshipShape) mSpaceshipShape->Render();
 
 	// If ship is thrusting
-	if ((mThrust > 0) && (mThrusterShape)) mThrusterShape ->Render();
+	if ((mThrust > 0) && (mThrusterShape)) mThrusterShape->Render();
 
 	GameObject::Render();
 }
@@ -57,8 +57,8 @@ void Spaceship::Thrust(float t)
 {
 	mThrust = t;
 	// Increase acceleration in the direction of ship
-	mAcceleration.x = mThrust*cos(DEG2RAD*mAngle);
-	mAcceleration.y = mThrust*sin(DEG2RAD*mAngle);
+	mAcceleration.x = mThrust * cos(DEG2RAD * mAngle);
+	mAcceleration.y = mThrust * sin(DEG2RAD * mAngle);
 }
 
 /** Set the rotation. */
@@ -73,7 +73,7 @@ void Spaceship::Shoot(void)
 	// Check the world exists
 	if (!mWorld) return;
 	// Construct a unit length vector in the direction the spaceship is headed
-	GLVector3f spaceship_heading(cos(DEG2RAD*mAngle), sin(DEG2RAD*mAngle), 0);
+	GLVector3f spaceship_heading(cos(DEG2RAD * mAngle), sin(DEG2RAD * mAngle), 0);
 	spaceship_heading.normalize();
 	// Calculate the point at the node of the spaceship from position and heading
 	GLVector3f bullet_position = mPosition + (spaceship_heading * 4);
@@ -82,9 +82,9 @@ void Spaceship::Shoot(void)
 	// Construct a vector for the bullet's velocity
 	GLVector3f bullet_velocity = mVelocity + spaceship_heading * bullet_speed;
 	// Construct a new bullet
-	shared_ptr<Bullet> bullet = make_shared<Bullet>(
+	shared_ptr<Bullet> bullet = std::make_shared<Bullet>(
 		bullet_position, bullet_velocity, mAcceleration, mAngle, 0, 2000);
-	bullet->SetBoundingShape(make_shared<BoundingSphere>(bullet->GetThisPtr(), 2.0f));
+	bullet->SetBoundingShape(std::make_shared<BoundingSphere>(bullet, 2.0f));
 	bullet->SetShape(mBulletShape);
 	// Add the new bullet to the game world
 	mWorld->AddObject(bullet);
@@ -101,6 +101,9 @@ bool Spaceship::CollisionTest(shared_ptr<GameObject> o)
 
 void Spaceship::OnCollision(const GameObjectList& objects)
 {
+
+	GameObjectList objectsToRemove;
+
 	for (auto it = objects.begin(); it != objects.end(); ++it) {
 		shared_ptr<GameObject> obj = *it;
 		if (!obj) continue;
@@ -123,12 +126,14 @@ void Spaceship::OnCollision(const GameObjectList& objects)
 					obj->SetVelocity(v1 * 0.5f);
 				}
 				else {
-					if (mWorld) {
-						mWorld->FlagForRemoval(GetThisPtr());
-						mWorld->FlagForRemoval(obj);
-					}
+					objectsToRemove.push_back(GetThisPtr());
+					objectsToRemove.push_back(obj);
 				}
 			}
+		}
+		if (mWorld) {
+			mWorld->FlagForRemoval(GetThisPtr());
+			mWorld->FlagForRemoval(obj);
 		}
 	}
 }

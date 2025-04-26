@@ -26,12 +26,12 @@ Asteroid::Asteroid(void)
 	GLVector3f vel = GLVector3f(rand() % 40 - 20, rand() % 40 - 20, 0);
 	SetPosition(pos);
 	SetVelocity(vel);
-	}
+}
 
 Asteroid::Asteroid(GLVector3f p, GLVector3f v, GLVector3f a, GLfloat h, GLfloat r, std::string size)
 	: GameObject("Asteroid", p, v, a, h, r),
-	mSize(size), 
-	mBoundingCircle(p, 5.0f), 
+	mSize(size),
+	mBoundingCircle(p, 5.0f),
 	mRadius(r)
 {
 
@@ -113,7 +113,7 @@ void Asteroid::OnCollision(const GameObjectList& objects)
 			int score = (mSize == "Large") ? 100 : 50;
 		}
 	}
-		}
+}
 
 void Asteroid::Bounce(shared_ptr<Asteroid> other)
 {
@@ -123,7 +123,7 @@ void Asteroid::Bounce(shared_ptr<Asteroid> other)
 
 	GLVector3f new_v1 = v1 - normal * (v1 - v2).dot(normal);
 	GLVector3f new_v2 = v2 - normal * (v2 - v1).dot(normal);
-	
+
 	SetVelocity(new_v1);
 	other->SetVelocity(new_v2);
 }
