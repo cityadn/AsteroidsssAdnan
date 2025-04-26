@@ -5,6 +5,8 @@
 #include "GameObject.h"
 #include "Asteroid.h"
 
+using namespace std;
+
 // PUBLIC INSTANCE CONSTRUCTORS ///////////////////////////////////////////////
 
 /** Constructor. Bullets live for 2s by default. */
@@ -33,10 +35,10 @@ void Bullet::Update(int t)
 	// Reduce time to live
 	mTimeToLive -= t;
 	// Ensure time to live isn't negative
-	if (mTimeToLive < 0 && mWorld) { mTimeToLive = 0; }
+	if (mTimeToLive < 0) { mTimeToLive = 0; }
 	// If time to live is zero then remove bullet from world
-	if (mTimeToLive == 0) {
-		if (mWorld) mWorld->FlagForRemoval(GetThisPtr());
+	if (mTimeToLive == 0 && mWorld) {
+		mWorld->FlagForRemoval(GetThisPtr());
 	}
 	// Update position/velocity
 	GameObject::Update(t);
@@ -46,15 +48,13 @@ void Bullet::Update(int t)
 bool Bullet::CollisionTest(shared_ptr<GameObject> o)
 {
 	if (o->GetType() != GameObjectType("Asteroid")) return false;
-	if (mBoundingShape.get() == NULL) return false;
-	if (o->GetBoundingShape().get() == NULL) return false;
+	if (!mBoundingShape || !o->GetBoundingShape()) return false;
 	return mBoundingShape->CollisionTest(o->GetBoundingShape());
 }
 
 void Bullet::OnCollision(const GameObjectList& objects)
 {
-	for (auto it = objects.begin(); it != objects.end(); ++it) {
-		auto obj = *it;
+	for (auto& obj : objects) {
 		if (!obj || obj->GetType() != GameObjectType("Asteroid")) continue;
 
 		float radius = 0.0f;
@@ -70,7 +70,7 @@ void Bullet::OnCollision(const GameObjectList& objects)
 			for (int i = 0; i < 2;++i) {
 				GLVector3f pos = obj->GetPosition();
 				GLVector3f vel(rand() % 6 - 3, rand() % 6 - 3, 0);
-				shared_ptr<GameObject> smallAsteroid(new Asteroid(pos, vel));
+				std::shared_ptr<Asteroid> smallAsteroid = std::make_shared<Asteroid>(pos, vel);
 				smallAsteroid->SetBoundingShape(make_shared<BoundingSphere>(smallAsteroid, 2.0f));
 				mWorld->AddObject(smallAsteroid);
 			}
