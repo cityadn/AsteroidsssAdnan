@@ -1,11 +1,11 @@
+// Computer Science and Games Technology: Lab Exercise 01
+
+// First we need to include some header files...
 #include <windows.h>	// The standard header for Windows applications
 #include <time.h>		// The standard header to access time fuctions
 
 #include "GlutSession.h"
 #include "Asteroids.h"
-#include "MainMenu.h"
-#include <GL/glut.h>
-
 
 // Now we need to perform some Windows magic to stop an extra console
 // window from appearing, don't worry about the specifics of this.
@@ -19,11 +19,9 @@ int main(int argc, char* argv[])
 	// Initialise a unique GLUT session
 	GlutSession::GetInstance().Init(argc, argv);
 	// Create a new asteroids game
-	//Asteroids asteroids(argc, argv);
-	std::shared_ptr<Asteroids> asteroids = std::make_shared<Asteroids>(argc, argv);
+	Asteroids asteroids(argc, argv);
 	// Start the asteroids game
-	asteroids->Start();
+	asteroids.Start();
 
 	return 0;
 }
-

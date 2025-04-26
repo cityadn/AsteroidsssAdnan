@@ -3,7 +3,6 @@
 #include "Bullet.h"
 #include "Spaceship.h"
 #include "BoundingSphere.h"
-#include "Asteroid.h"
 
 using namespace std;
 
@@ -44,10 +43,12 @@ void Spaceship::Update(int t)
 /** Render this spaceship. */
 void Spaceship::Render(void)
 {
-	if (mSpaceshipShape) mSpaceshipShape->Render();
+	if (mSpaceshipShape.get() != NULL) mSpaceshipShape->Render();
 
 	// If ship is thrusting
-	if ((mThrust > 0) && (mThrusterShape)) mThrusterShape->Render();
+	if ((mThrust > 0) && (mThrusterShape.get() != NULL)) {
+		mThrusterShape->Render();
+	}
 
 	GameObject::Render();
 }
@@ -82,9 +83,9 @@ void Spaceship::Shoot(void)
 	// Construct a vector for the bullet's velocity
 	GLVector3f bullet_velocity = mVelocity + spaceship_heading * bullet_speed;
 	// Construct a new bullet
-	shared_ptr<Bullet> bullet = std::make_shared<Bullet>(
-		bullet_position, bullet_velocity, mAcceleration, mAngle, 0, 2000);
-	bullet->SetBoundingShape(std::make_shared<BoundingSphere>(bullet, 2.0f));
+	shared_ptr<GameObject> bullet
+	(new Bullet(bullet_position, bullet_velocity, mAcceleration, mAngle, 0, 2000));
+	bullet->SetBoundingShape(make_shared<BoundingSphere>(bullet->GetThisPtr(), 2.0f));
 	bullet->SetShape(mBulletShape);
 	// Add the new bullet to the game world
 	mWorld->AddObject(bullet);
@@ -101,39 +102,5 @@ bool Spaceship::CollisionTest(shared_ptr<GameObject> o)
 
 void Spaceship::OnCollision(const GameObjectList& objects)
 {
-
-	GameObjectList objectsToRemove;
-
-	for (auto it = objects.begin(); it != objects.end(); ++it) {
-		shared_ptr<GameObject> obj = *it;
-		if (!obj) continue;
-
-		if (auto asteroid = dynamic_pointer_cast<Asteroid>(obj)) {
-			float radius = 0.0f;
-			auto shape = obj->GetBoundingShape();
-			if (shape) {
-				auto bs = dynamic_pointer_cast<BoundingSphere>(shape);
-				if (bs) {
-					radius = bs->GetRadius();
-				}
-
-				if (radius <= 4.0f) {
-					// Bounce
-					GLVector3f v1 = mVelocity;
-					GLVector3f v2 = obj->GetVelocity();
-
-					mVelocity = v2 * 0.5f;
-					obj->SetVelocity(v1 * 0.5f);
-				}
-				else {
-					objectsToRemove.push_back(GetThisPtr());
-					objectsToRemove.push_back(obj);
-				}
-			}
-		}
-		if (mWorld) {
-			mWorld->FlagForRemoval(GetThisPtr());
-			mWorld->FlagForRemoval(obj);
-		}
-	}
+	mWorld->FlagForRemoval(GetThisPtr());
 }
