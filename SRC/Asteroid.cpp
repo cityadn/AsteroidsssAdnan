@@ -1,33 +1,43 @@
-#include <stdlib.h>
-#include "GameUtil.h"
 #include "Asteroid.h"
+#include "GameWorld.h"
 #include "BoundingShape.h"
+#include <cmath>
 
-Asteroid::Asteroid(void) : GameObject("Asteroid")
+Asteroid::Asteroid() : GameObject("Asteroid")
 {
-	mAngle = rand() % 360;
-	mRotation = 0; // rand() % 90;
-	mPosition.x = rand() / 2;
-	mPosition.y = rand() / 2;
-	mPosition.z = 0.0;
-	mVelocity.x = 10.0 * cos(DEG2RAD * mAngle);
-	mVelocity.y = 10.0 * sin(DEG2RAD * mAngle);
-	mVelocity.z = 0.0;
+    mAngle = rand() % 360;
+    mRotation = 0;
+    mPosition.x = rand() % 800;
+    mPosition.y = rand() % 600;
+    mPosition.z = 0.0;
+
+    float speedScale = 3.0f;
+    mVelocity.x = speedScale * cos(DEG2RAD * mAngle);
+    mVelocity.y = speedScale * sin(DEG2RAD * mAngle);
+    mVelocity.z = 0.0;
 }
 
-Asteroid::~Asteroid(void)
+Asteroid::~Asteroid() {}
+
+void Asteroid::Update(int t)
 {
+    mPosition.x += mVelocity.x * t;
+    mPosition.y += mVelocity.y * t;
+
+    if (mWorld)
+    {
+        mWorld->WrapXY(mPosition.x, mPosition.y);
+    }
 }
 
-bool Asteroid::CollisionTest(shared_ptr<GameObject> o)
+bool Asteroid::CollisionTest(std::shared_ptr<GameObject> o)
 {
-	if (GetType() == o->GetType()) return false;
-	if (mBoundingShape.get() == NULL) return false;
-	if (o->GetBoundingShape().get() == NULL) return false;
-	return mBoundingShape->CollisionTest(o->GetBoundingShape());
+    if (GetType() == o->GetType()) return false;
+    if (!mBoundingShape || !o->GetBoundingShape()) return false;
+    return mBoundingShape->CollisionTest(o->GetBoundingShape());
 }
 
 void Asteroid::OnCollision(const GameObjectList& objects)
 {
-	mWorld->FlagForRemoval(GetThisPtr());
+    mWorld->FlagForRemoval(GetThisPtr());
 }

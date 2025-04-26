@@ -1,6 +1,3 @@
-// Computer Science and Games Technology: Lab Exercise 01
-
-// First we need to include some header files...
 #include <windows.h>	// The standard header for Windows applications
 #include <time.h>		// The standard header to access time fuctions
 
