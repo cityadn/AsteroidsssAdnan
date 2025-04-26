@@ -14,7 +14,7 @@ class GameObject;
 class Spaceship;
 class GUILabel;
 
-class Asteroids : public GameSession, public IKeyboardListener, public IGameWorldListener, public IScoreListener, public IPlayerListener, public ITimerListener
+class Asteroids : public GameSession, public IKeyboardListener, public IGameWorldListener, public IScoreListener, public IPlayerListener
 {
 public:
     Asteroids(int argc, char* argv[]);
@@ -60,6 +60,7 @@ private:
 
     // New private methods and variables for gradual asteroid spawning
     void SpawnAsteroid(); // Spawns a single asteroid
+    void HandleAsteroidCollision(shared_ptr<GameObject> asteroid1, shared_ptr<GameObject> asteroid2); // Handles asteroid collisions
     int mTimeSinceLastSpawn; // Time since the last asteroid spawn
     const int SPAWN_INTERVAL = 2000; // Spawn interval in milliseconds
 

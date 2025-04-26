@@ -14,9 +14,12 @@
 #include <vector>
 #include <memory>
 #include <sstream>
+#include <cmath> // For sqrt
 
 // Define a maximum limit for asteroids
 const int MAX_ASTEROIDS = 50;
+const int MAX_INITIAL_ASTEROIDS = 10; // Increased number of asteroids created initially
+const float ASTEROID_SPEED_SCALE = 0.02f; // Lowered asteroid speed
 
 // PUBLIC INSTANCE CONSTRUCTORS ///////////////////////////////////////////////
 
@@ -67,7 +70,7 @@ void Asteroids::Start()
     // Create a spaceship and add it to the world
     mGameWorld->AddObject(CreateSpaceship());
     // Create some asteroids and add them to the world
-    CreateAsteroids(10);
+    CreateAsteroids(MAX_INITIAL_ASTEROIDS);
 
     // Create the GUI
     CreateGUI();
@@ -80,9 +83,6 @@ void Asteroids::Start()
 
     // Start the game
     GameSession::Start();
-
-    // Set a timer for asteroid spawning
-    SetTimer(SPAWN_INTERVAL, 0);
 }
 
 /** Stop the current game. */
@@ -103,30 +103,9 @@ void Asteroids::OnTimer(int value)
         mGameWorld->AddObject(mSpaceship);
     }
 
-    if (value == START_NEXT_LEVEL)
-    {
-        mLevel++;
-        int num_asteroids = 10 + 2 * mLevel;
-        CreateAsteroids(num_asteroids);
-    }
-
     if (value == SHOW_GAME_OVER)
     {
         mGameOverLabel->SetVisible(true);
-    }
-
-    // Gradual asteroid spawning
-    if (mAsteroidCount < MAX_ASTEROIDS) // Check if the maximum limit is reached
-    {
-        mTimeSinceLastSpawn += SPAWN_INTERVAL;
-        if (mTimeSinceLastSpawn >= SPAWN_INTERVAL)
-        {
-            SpawnAsteroid();
-            mTimeSinceLastSpawn = 0;
-        }
-
-        // Continue the timer
-        SetTimer(SPAWN_INTERVAL, 0);
     }
 }
 
@@ -219,6 +198,7 @@ void Asteroids::OnPlayerKilled(int lives_left)
 
 // PUBLIC INSTANCE METHODS IMPLEMENTING IGameWorldListener ////////////////////
 
+/** Handle object removal. */
 void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 {
     if (object->GetType() == GameObjectType("Asteroid"))
@@ -228,15 +208,91 @@ void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
         explosion->SetRotation(object->GetRotation());
         mGameWorld->AddObject(explosion);
         mAsteroidCount--;
-
-        if (mAsteroidCount <= 0)
-        {
-            SetTimer(500, START_NEXT_LEVEL);
-        }
     }
 }
 
 // PRIVATE INSTANCE METHODS ///////////////////////////////////////////////////
+
+/** Create asteroids. */
+void Asteroids::CreateAsteroids(const uint num_asteroids)
+{
+    uint asteroids_to_create = std::min(num_asteroids, MAX_ASTEROIDS - mAsteroidCount);
+    for (uint i = 0; i < asteroids_to_create; i++)
+    {
+        Animation* anim_ptr = AnimationManager::GetInstance().GetAnimationByName("asteroid1");
+        shared_ptr<Sprite> asteroid_sprite =
+            make_shared<Sprite>(anim_ptr->GetWidth(), anim_ptr->GetHeight(), anim_ptr);
+        asteroid_sprite->SetLoopAnimation(true);
+
+        shared_ptr<Asteroid> asteroid = make_shared<Asteroid>();
+        asteroid->SetBoundingShape(make_shared<BoundingSphere>(asteroid->GetThisPtr(), 10.0f));
+        asteroid->SetSprite(asteroid_sprite);
+        asteroid->SetScale(0.2f);
+
+        // Adjust asteroid velocity to make it slower
+        GLVector3f velocity = asteroid->GetVelocity();
+        velocity.x *= ASTEROID_SPEED_SCALE;
+        velocity.y *= ASTEROID_SPEED_SCALE;
+        asteroid->SetVelocity(velocity);
+
+        mGameWorld->AddObject(asteroid);
+        mAsteroidCount++;
+    }
+}
+
+/** Handle asteroid collision to bounce in the opposite direction. */
+void Asteroids::HandleAsteroidCollision(shared_ptr<GameObject> asteroid1, shared_ptr<GameObject> asteroid2)
+{
+    // Get positions and velocities of the asteroids
+    GLVector3f position1 = asteroid1->GetPosition();
+    GLVector3f position2 = asteroid2->GetPosition();
+    GLVector3f velocity1 = asteroid1->GetVelocity();
+    GLVector3f velocity2 = asteroid2->GetVelocity();
+
+    // Calculate the collision normal
+    GLVector3f collision_normal = position2 - position1;
+    float magnitude = std::sqrt(collision_normal.x * collision_normal.x +
+        collision_normal.y * collision_normal.y +
+        collision_normal.z * collision_normal.z);
+    if (magnitude > 0.0f) {
+        collision_normal.x /= magnitude;
+        collision_normal.y /= magnitude;
+        collision_normal.z /= magnitude;
+    }
+    else {
+        // If the magnitude is zero, the asteroids are at the same position
+        return;
+    }
+
+    // Calculate dot products
+    float dot_product1 = velocity1.x * collision_normal.x +
+        velocity1.y * collision_normal.y +
+        velocity1.z * collision_normal.z;
+    float dot_product2 = velocity2.x * collision_normal.x +
+        velocity2.y * collision_normal.y +
+        velocity2.z * collision_normal.z;
+
+    // Reflect velocities along the collision normal
+    GLVector3f new_velocity1 = {
+        velocity1.x - 2 * dot_product1 * collision_normal.x,
+        velocity1.y - 2 * dot_product1 * collision_normal.y,
+        velocity1.z - 2 * dot_product1 * collision_normal.z
+    };
+
+    GLVector3f new_velocity2 = {
+        velocity2.x - 2 * dot_product2 * collision_normal.x,
+        velocity2.y - 2 * dot_product2 * collision_normal.y,
+        velocity2.z - 2 * dot_product2 * collision_normal.z
+    };
+
+    // Apply the new velocities
+    asteroid1->SetVelocity(new_velocity1);
+    asteroid2->SetVelocity(new_velocity2);
+
+    // Debug output to verify the new velocities
+    std::cout << "Asteroid 1 new velocity: (" << new_velocity1.x << ", " << new_velocity1.y << ", " << new_velocity1.z << ")" << std::endl;
+    std::cout << "Asteroid 2 new velocity: (" << new_velocity2.x << ", " << new_velocity2.y << ", " << new_velocity2.z << ")" << std::endl;
+}
 
 /** Create a spaceship. */
 shared_ptr<GameObject> Asteroids::CreateSpaceship()
@@ -280,24 +336,6 @@ void Asteroids::CreateGUI()
     mGameDisplay->GetContainer()->AddComponent(game_over_component, GLVector2f(0.5f, 0.5f));
 }
 
-/** Create asteroids. */
-void Asteroids::CreateAsteroids(const uint num_asteroids)
-{
-    mAsteroidCount = num_asteroids;
-    for (uint i = 0; i < num_asteroids; i++)
-    {
-        Animation* anim_ptr = AnimationManager::GetInstance().GetAnimationByName("asteroid1");
-        shared_ptr<Sprite> asteroid_sprite =
-            make_shared<Sprite>(anim_ptr->GetWidth(), anim_ptr->GetHeight(), anim_ptr);
-        asteroid_sprite->SetLoopAnimation(true);
-        shared_ptr<GameObject> asteroid = make_shared<Asteroid>();
-        asteroid->SetBoundingShape(make_shared<BoundingSphere>(asteroid->GetThisPtr(), 10.0f));
-        asteroid->SetSprite(asteroid_sprite);
-        asteroid->SetScale(0.2f);
-        mGameWorld->AddObject(asteroid);
-    }
-}
-
 /** Create an explosion. */
 shared_ptr<GameObject> Asteroids::CreateExplosion()
 {
@@ -309,22 +347,4 @@ shared_ptr<GameObject> Asteroids::CreateExplosion()
     explosion->SetSprite(explosion_sprite);
     explosion->Reset();
     return explosion;
-}
-
-/** Spawn a single asteroid. */
-void Asteroids::SpawnAsteroid()
-{
-    if (mAsteroidCount < MAX_ASTEROIDS) // Limit the total number of asteroids
-    {
-        Animation* anim_ptr = AnimationManager::GetInstance().GetAnimationByName("asteroid1");
-        shared_ptr<Sprite> asteroid_sprite =
-            make_shared<Sprite>(anim_ptr->GetWidth(), anim_ptr->GetHeight(), anim_ptr);
-        asteroid_sprite->SetLoopAnimation(true);
-        shared_ptr<GameObject> asteroid = make_shared<Asteroid>();
-        asteroid->SetBoundingShape(make_shared<BoundingSphere>(asteroid->GetThisPtr(), 10.0f));
-        asteroid->SetSprite(asteroid_sprite);
-        asteroid->SetScale(0.2f);
-        mGameWorld->AddObject(asteroid);
-        mAsteroidCount++;
-    }
 }
