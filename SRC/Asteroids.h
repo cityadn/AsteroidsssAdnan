@@ -14,14 +14,20 @@ class GameObject;
 class Spaceship;
 class GUILabel;
 
-class Asteroids : public GameSession, public IKeyboardListener, public IGameWorldListener, public IScoreListener, public IPlayerListener
+class Asteroids : public GameSession, 
+	public IScoreListener,
+	public IKeyboardListener, 
+	public IGameWorldListener, 
+	public IPlayerListener,
+	public ITimerListener,
+	public std::enable_shared_from_this<Asteroids>
 {
 public:
 	Asteroids(int argc, char* argv[]);
 	virtual ~Asteroids(void);
 
-	virtual void Start(void);
-	virtual void Stop(void);
+	void Start(void);
+	void Stop(void);
 
 	// Declaration of IKeyboardListener interface ////////////////////////////////
 
@@ -53,6 +59,9 @@ private:
 	shared_ptr<GUILabel> mLivesLabel;
 	shared_ptr<GUILabel> mGameOverLabel;
 
+	ScoreKeeper mScoreKeeper;
+	Player mPlayer;
+
 	uint mLevel;
 	uint mAsteroidCount;
 
@@ -62,12 +71,9 @@ private:
 	void CreateAsteroids(const uint num_asteroids);
 	shared_ptr<GameObject> CreateExplosion();
 
-	const static uint SHOW_GAME_OVER = 0;
-	const static uint START_NEXT_LEVEL = 1;
-	const static uint CREATE_NEW_PLAYER = 2;
-
-	ScoreKeeper mScoreKeeper;
-	Player mPlayer;
+	const static int CREATE_NEW_PLAYER = 1;
+	const static int START_NEXT_LEVEL = 2;
+	const static int SHOW_GAME_OVER = 3;
 };
 
 #endif

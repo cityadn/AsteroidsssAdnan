@@ -8,12 +8,16 @@
 #include "GameObjectType.h"
 #include "GameWorld.h"
 
+#include <GL/GLUT.H>
+#include <cmath>
+#include <cstdlib>
+
 using namespace std;
 
 Asteroid::Asteroid(void)
 	: GameObject("Asteroid"),
 	mSize("Large"),
-mBoundingCircle(GLVector3f(0, 0, 0), 5.0f)
+	mBoundingCircle(GLVector3f(0, 0, 0), 5.0f)
 {
 	mRadius = 10.0f;
 
@@ -25,10 +29,12 @@ mBoundingCircle(GLVector3f(0, 0, 0), 5.0f)
 	}
 
 Asteroid::Asteroid(GLVector3f p, GLVector3f v, GLVector3f a, GLfloat h, GLfloat r, std::string size)
-	: GameObject("Asteroid", p, v, a, h, r), mSize(size), mBoundingCircle(p, 5.0f), mRadius(r)
+	: GameObject("Asteroid", p, v, a, h, r),
+	mSize(size), 
+	mBoundingCircle(p, 5.0f), 
+	mRadius(r)
 {
-	//mBoundingShape = make_shared<BoundingShape>(this, 2.0f);
-	//mBoundingCircle = BoundingCircle(p, r);
+
 }
 
 Asteroid::~Asteroid(void)
@@ -86,21 +92,21 @@ void Asteroid::OnCollision(const GameObjectList& objects)
 		auto obj = *it;
 		if (!obj) continue;
 		if (obj->GetType() == GameObjectType("Asteroid")) {
-			shared_ptr<Asteroid> a = std::static_pointer_cast<Asteroid>(obj);
+			auto a = static_pointer_cast<Asteroid>(obj);
 			Bounce(a);
 		}
 		if (obj->GetType() == GameObjectType("Spaceship")) {
-			shared_ptr<Spaceship> s = static_pointer_cast<Spaceship>(obj);
+			auto s = static_pointer_cast<Spaceship>(obj);
 			mWorld->FlagForRemoval(GetThisPtr());
 			mWorld->FlagForRemoval(s);
 			s->OnCollision(objects);
 		}
 		if (obj->GetType() == GameObjectType("Bullet")) {
-			shared_ptr<Bullet> bullet = static_pointer_cast<Bullet>(obj);
-			shared_ptr<Asteroid> smallAsteroid1 = CreateSmallerAsteroid();
-			shared_ptr<Asteroid> smallAsteroid2 = CreateSmallerAsteroid();
-			mWorld->AddObject(smallAsteroid1);
-			mWorld->AddObject(smallAsteroid2);
+			auto bullet = static_pointer_cast<Bullet>(obj);
+			auto smallAsteroid1 = CreateSmallerAsteroid();
+			auto smallAsteroid2 = CreateSmallerAsteroid();
+			if (smallAsteroid1) mWorld->AddObject(smallAsteroid1);
+			if (smallAsteroid2) mWorld->AddObject(smallAsteroid2);
 			mWorld->FlagForRemoval(GetThisPtr());
 			mWorld->FlagForRemoval(bullet);
 			// Award score based on asteroid size

@@ -19,9 +19,10 @@ int main(int argc, char* argv[])
 	// Initialise a unique GLUT session
 	GlutSession::GetInstance().Init(argc, argv);
 	// Create a new asteroids game
-	Asteroids asteroids(argc, argv);
+	//Asteroids asteroids(argc, argv);
+	std::shared_ptr<Asteroids> asteroids = std::make_shared<Asteroids>(argc, argv);
 	// Start the asteroids game
-	asteroids.Start();
+	asteroids->Start();
 
 	return 0;
 }

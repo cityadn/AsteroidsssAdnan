@@ -4,13 +4,17 @@
 #include "GameObject.h"
 #include "GameUtil.h"
 #include "BoundingShape.h"
+#include "BoundingSphere.h"
 #include "Spaceship.h"
 #include "Bullet.h"
+#include <string>
+#include <memory>
 
-class Asteroid : public GameObject, public std::enable_shared_from_this<Asteroid>
+class Asteroid : public GameObject,
+	public std::enable_shared_from_this<Asteroid>
 {
 public:
-	Asteroid();
+	Asteroid(void);
 	Asteroid(GLVector3f p, GLVector3f v, GLVector3f a, GLfloat h, GLfloat r, std::string size);
 	Asteroid(const Asteroid& a);
 	Asteroid(GLVector3f pos, GLVector3f vel) 
@@ -20,15 +24,16 @@ public:
 	}
 	virtual ~Asteroid(void);
 
-	virtual void Update(int t) override;
-	virtual void Render() override;
-	bool CollisionTest(shared_ptr<GameObject> o);
-	void OnCollision(const GameObjectList& objects);
-
-	void Bounce(shared_ptr<Asteroid> other);
+	void Update(int t) override;
+	void Render() override;
+	bool CollisionTest(shared_ptr<GameObject> o) override;
+	void OnCollision(const GameObjectList& objects) override;
 	shared_ptr<Asteroid> CreateSmallerAsteroid();
 	std::string GetSize() { return mSize; }
 	std::shared_ptr<BoundingShape> mAsteroidShape;
+
+protected:
+	void Bounce(shared_ptr<Asteroid> other);
 	
 private:
 	std::string mSize;

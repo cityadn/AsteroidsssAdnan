@@ -33,7 +33,7 @@ Asteroids::~Asteroids(void)
 void Asteroids::Start()
 {
 	// Create a shared pointer for the Asteroids game object - DO NOT REMOVE
-	shared_ptr<Asteroids> thisPtr = shared_ptr<Asteroids>(this);
+	shared_ptr<Asteroids> thisPtr = shared_from_this();
 
 	// Add this class as a listener of the game world
 	mGameWorld->AddListener(thisPtr.get());
@@ -203,9 +203,9 @@ void Asteroids::CreateAsteroids(const uint num_asteroids)
 			= make_shared<Sprite>(anim_ptr->GetWidth(), anim_ptr->GetHeight(), anim_ptr);
 		asteroid_sprite->SetLoopAnimation(true);
 		shared_ptr<GameObject> asteroid = make_shared<Asteroid>();
-		asteroid->SetBoundingShape(make_shared<BoundingSphere>(asteroid->GetThisPtr(), 10.0f));
 		asteroid->SetSprite(asteroid_sprite);
 		asteroid->SetScale(0.2f);
+		asteroid->SetBoundingShape(make_shared<BoundingSphere>(asteroid, 10.0f));
 		mGameWorld->AddObject(asteroid);
 	}
 }
