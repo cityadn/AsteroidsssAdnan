@@ -54,10 +54,16 @@ bool Bullet::CollisionTest(shared_ptr<GameObject> o)
 
 void Bullet::OnCollision(const GameObjectList& objects)
 {
-	for (auto& obj : objects) {
+	for (auto it = objects.begin(); it != objects.end(); ++it) {
+		auto obj = *it;
 		if (!obj || obj->GetType() != GameObjectType("Asteroid")) continue;
 
-		float radius = 0.0f;
+		GLVector3f pos = obj->GetPosition();
+		GLVector3f vel(rand() % 6 - 3, rand() % 6 - 3, 0);
+
+		std::shared_ptr<Asteroid> smallAsteroid = std::make_shared<Asteroid>(pos, vel);
+		smallAsteroid->SetBoundingShape(std::make_shared<BoundingSphere>(smallAsteroid, 2.0f));
+		/*float radius = 0.0f;
 		auto shape = obj->GetBoundingShape();
 		if (shape) {
 			auto bs = dynamic_pointer_cast<BoundingSphere>(shape);
@@ -67,14 +73,14 @@ void Bullet::OnCollision(const GameObjectList& objects)
 		}
 
 		if (radius > 4.0f && mWorld) {
-			for (int i = 0; i < 2;++i) {
+			for (int i = 0; i < 2; ++i) {
 				GLVector3f pos = obj->GetPosition();
 				GLVector3f vel(rand() % 6 - 3, rand() % 6 - 3, 0);
 				std::shared_ptr<Asteroid> smallAsteroid = std::make_shared<Asteroid>(pos, vel);
-				smallAsteroid->SetBoundingShape(make_shared<BoundingSphere>(smallAsteroid, 2.0f));
+				smallAsteroid->SetBoundingShape(std::make_shared<BoundingSphere>(smallAsteroid, 2.0f));
 				mWorld->AddObject(smallAsteroid);
 			}
-		}
+		}*/
 
 		if (mWorld) {
 			mWorld->FlagForRemoval(obj);

@@ -145,7 +145,7 @@ shared_ptr<Asteroid> Asteroid::CreateSmallerAsteroid()
 		return nullptr;
 	}
 
-	shared_ptr<Asteroid> smaller = make_shared<Asteroid>(GetPosition(), newVel, GLVector3f(0, 0, 0), 0, newRadius, newSize);
+	std::shared_ptr<Asteroid> smaller = std::make_shared<Asteroid>(GetPosition(), newVel, GLVector3f(0, 0, 0), 0, newRadius, newSize);
 
 	smaller->SetBoundingShape(make_shared<BoundingSphere>(smaller, newRadius));
 
