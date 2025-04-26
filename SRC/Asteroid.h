@@ -51,6 +51,7 @@ private:
 
 	BoundingCircle mBoundingCircle;
 	float mRadius;
+	// see if this gets committed
 };
 
 #endif
