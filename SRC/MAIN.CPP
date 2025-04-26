@@ -21,4 +21,5 @@ int main(int argc, char* argv[])
 	asteroids.Start();
 
 	return 0;
+	// Check if i can commit changes
 }
