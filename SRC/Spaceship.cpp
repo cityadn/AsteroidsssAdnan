@@ -60,7 +60,7 @@ void Spaceship::Render(void)
 /** Fire the rockets. */
 void Spaceship::Thrust(float t)
 {
-	mThrust = t * 5;
+	mThrust = t * 2;
 	// Increase acceleration in the direction of ship
 	mAcceleration.x = mThrust * cos(DEG2RAD * mAngle);
 	mAcceleration.y = mThrust * sin(DEG2RAD * mAngle);
@@ -69,7 +69,7 @@ void Spaceship::Thrust(float t)
 /** Set the rotation. */
 void Spaceship::Rotate(float r)
 {
-	mRotation = r * 2.5;
+	mRotation = r * 1.1;
 }
 
 /** Shoot a bullet. */
@@ -104,6 +104,11 @@ bool Spaceship::CollisionTest(shared_ptr<GameObject> o)
 	return mBoundingShape->CollisionTest(o->GetBoundingShape());
 }
 
+void Spaceship::IncreaseTurningSpeed(float factor)
+{
+	mTurningSpeed *= factor; // Increase turning speed by the given factor
+}
+
 void Spaceship::OnCollision(const GameObjectList& objects)
 {
 	for (auto& object : objects)
@@ -124,6 +129,15 @@ void Spaceship::OnCollision(const GameObjectList& objects)
 		if (object->GetType().GetTypeName() == "Asteroid")
 		{
 			mWorld->FlagForRemoval(GetThisPtr());
+		}
+
+		if (object->GetType().GetTypeName() == "PowerUp")
+		{
+			// Increase the turning speed
+			IncreaseTurningSpeed(1.5f); // Example: Increase turning speed by 50%
+
+			// Remove the power-up from the game world
+			mWorld->FlagForRemoval(object);
 		}
 	}
 }

@@ -57,11 +57,15 @@ void Asteroids::Start()
 	Animation* explosion_anim = AnimationManager::GetInstance().CreateAnimationFromFile("explosion", 64, 1024, 64, 64, "explosion_fs.png");
 	Animation* asteroid1_anim = AnimationManager::GetInstance().CreateAnimationFromFile("asteroid1", 128, 8192, 128, 128, "asteroid1_fs.png");
 	Animation* spaceship_anim = AnimationManager::GetInstance().CreateAnimationFromFile("spaceship", 128, 128, 128, 128, "spaceship_fs.png");
+	Animation* powerup_anim = AnimationManager::GetInstance().CreateAnimationFromFile("powerup", 5, 5, 5, 5, "upgrade.png");
 
 	// Create a spaceship and add it to the world
 	mGameWorld->AddObject(CreateSpaceship());
 	// Create some asteroids and add them to the world
 	CreateAsteroids(10);
+
+	// Create power-ups
+	CreatePowerUps(20);
 
 	//Create the GUI
 	CreateGUI();
@@ -208,6 +212,30 @@ void Asteroids::CreateAsteroids(const uint num_asteroids)
 		asteroid->SetSprite(asteroid_sprite);
 		asteroid->SetScale(0.2f);
 		mGameWorld->AddObject(asteroid);
+	}
+}
+
+void Asteroids::CreatePowerUps(const uint num_powerups)
+{
+	for (uint i = 0; i < num_powerups; i++)
+	{
+		// Create a generic GameObject for the power-up
+		shared_ptr<GameObject> powerUp = make_shared<GameObject>("PowerUp");
+
+		// Set the position of the power-up randomly within the game world
+		powerUp->SetPosition(GLVector3<float>(rand() % 800, rand() % 600, 0.0f));
+
+		// Set a bounding shape for collision detection
+		powerUp->SetBoundingShape(make_shared<BoundingSphere>(powerUp->GetThisPtr(), 5.0f)); // Example radius
+
+		// Assign the sprite to the power-up
+		Animation* powerup_anim = AnimationManager::GetInstance().GetAnimationByName("powerup");
+		shared_ptr<Sprite> powerup_sprite = make_shared<Sprite>(
+			powerup_anim->GetWidth(), powerup_anim->GetHeight(), powerup_anim);
+		powerUp->SetSprite(powerup_sprite);
+
+		// Add the power-up to the game world
+		mGameWorld->AddObject(powerUp);
 	}
 }
 
