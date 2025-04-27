@@ -11,6 +11,7 @@
 #include "BoundingSphere.h"
 #include "GUILabel.h"
 #include "Explosion.h"
+#include "Player.h"
 
 // PUBLIC INSTANCE CONSTRUCTORS ///////////////////////////////////////////////
 
@@ -58,7 +59,6 @@ void Asteroids::Start()
 	Animation* asteroid1_anim = AnimationManager::GetInstance().CreateAnimationFromFile("asteroid1", 128, 8192, 128, 128, "asteroid1_fs.png");
 	Animation* spaceship_anim = AnimationManager::GetInstance().CreateAnimationFromFile("spaceship", 128, 128, 128, 128, "spaceship_fs.png");
 	Animation* powerup_anim = AnimationManager::GetInstance().CreateAnimationFromFile("powerup", 5, 5, 5, 5, "upgrade.png");
-
 	// Create a spaceship and add it to the world
 	mGameWorld->AddObject(CreateSpaceship());
 	// Create some asteroids and add them to the world
@@ -165,6 +165,9 @@ void Asteroids::OnTimer(int value)
 	if (value == START_NEXT_LEVEL)
 	{
 		mLevel++;
+		if (mLevel++) {
+			mPlayer.mLives += 1;
+		}
 		//int num_asteroids = 10 + 2 * mLevel;
 		int num_asteroids = mLevel;
 		CreateAsteroids(num_asteroids);

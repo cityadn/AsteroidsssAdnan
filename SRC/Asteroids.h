@@ -9,6 +9,9 @@
 #include "ScoreKeeper.h"
 #include "Player.h"
 #include "IPlayerListener.h"
+#include "GameObject.h"
+#include "GameObjectType.h"
+#include "IPlayerListener.h"
 
 class GameObject;
 class Spaceship;
