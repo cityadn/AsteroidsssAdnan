@@ -2,7 +2,6 @@
 #define __SCOREKEEPER_H__
 
 #include "GameUtil.h"
-
 #include "GameObject.h"
 #include "GameObjectType.h"
 #include "IScoreListener.h"
@@ -11,39 +10,45 @@
 class ScoreKeeper : public IGameWorldListener
 {
 public:
-	ScoreKeeper() { mScore = 0; }
-	virtual ~ScoreKeeper() {}
+    ScoreKeeper() { mScore = 0; }
+    virtual ~ScoreKeeper() {}
 
-	void OnWorldUpdated(GameWorld* world) {}
-	void OnObjectAdded(GameWorld* world, shared_ptr<GameObject> object) {}
+    void OnWorldUpdated(GameWorld* world) {}
+    void OnObjectAdded(GameWorld* world, shared_ptr<GameObject> object) {}
 
-	void OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
-	{
-		if (object->GetType() == GameObjectType("Asteroid")) {
-			mScore += 10;
-			FireScoreChanged();
-		}
-	}
+    void OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
+    {
+        // Check if the object is a large asteroid
+        if (object->GetType() == GameObjectType("Asteroid")) {
+            mScore += 10; // Add 10 points for large asteroids
+            FireScoreChanged();
+        }
+        // Check if the object is a small asteroid
+        else if (object->GetType() == GameObjectType("SmallAsteroid")) {
+            mScore += 5; // Add 5 points for small asteroids
+            FireScoreChanged();
+        }
+    }
 
-	void AddListener(shared_ptr<IScoreListener> listener)
-	{
-		mListeners.push_back(listener);
-	}
+    void AddListener(shared_ptr<IScoreListener> listener)
+    {
+        mListeners.push_back(listener);
+    }
 
-	void FireScoreChanged()
-	{
-		// Send message to all listeners
-		for (ScoreListenerList::iterator lit = mListeners.begin(); lit != mListeners.end(); ++lit) {
-			(*lit)->OnScoreChanged(mScore);
-		}
-	}
+    void FireScoreChanged()
+    {
+        // Send message to all listeners
+        for (ScoreListenerList::iterator lit = mListeners.begin(); lit != mListeners.end(); ++lit) {
+            (*lit)->OnScoreChanged(mScore);
+        }
+    }
 
 private:
-	int mScore;
+    int mScore;
 
-	typedef std::list< shared_ptr<IScoreListener> > ScoreListenerList;
+    typedef std::list< shared_ptr<IScoreListener> > ScoreListenerList;
 
-	ScoreListenerList mListeners;
+    ScoreListenerList mListeners;
 };
 
 #endif

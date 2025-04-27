@@ -8,14 +8,11 @@ class Asteroid : public GameObject
 {
 public:
     Asteroid(); // Default constructor
-    virtual ~Asteroid();
+    ~Asteroid();
 
-    void Update(int t) override;
-    bool CollisionTest(std::shared_ptr<GameObject> o) override;
-    void OnCollision(const GameObjectList& objects) override;
-
-private:
-    bool mIsSmall; // Flag to indicate if the asteroid is small
+    void Update(int t);
+    bool CollisionTest(std::shared_ptr<GameObject> o);
+    void OnCollision(const GameObjectList& objects);
 };
 
 #endif

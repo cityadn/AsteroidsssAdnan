@@ -1,8 +1,12 @@
 #include "Asteroid.h"
+#include "SmallAsteroid.h"
 #include "GameWorld.h"
 #include "BoundingShape.h"
+#include "BoundingSphere.h"
 #include <cmath>
+#include <iostream>
 
+// Default constructor for Asteroid
 Asteroid::Asteroid() : GameObject("Asteroid")
 {
     mAngle = rand() % 360;
@@ -11,12 +15,13 @@ Asteroid::Asteroid() : GameObject("Asteroid")
     mPosition.y = rand() % 600;
     mPosition.z = 0.0;
 
-    float speedScale = 3.0f;
+    float speedScale = 0.02f;
     mVelocity.x = speedScale * cos(DEG2RAD * mAngle);
     mVelocity.y = speedScale * sin(DEG2RAD * mAngle);
     mVelocity.z = 0.0;
 }
 
+// Destructor for Asteroid
 Asteroid::~Asteroid() {}
 
 void Asteroid::Update(int t)
@@ -32,7 +37,6 @@ void Asteroid::Update(int t)
 
 bool Asteroid::CollisionTest(std::shared_ptr<GameObject> o)
 {
-    //if (GetType() == o->GetType()) return false;
     if (!mBoundingShape || !o->GetBoundingShape()) return false;
     return mBoundingShape->CollisionTest(o->GetBoundingShape());
 }
@@ -42,7 +46,7 @@ void Asteroid::OnCollision(const GameObjectList& objects)
     for (auto& object : objects)
     {
         // Check if the colliding object is another asteroid
-        if (object->GetType().GetTypeName() == "Asteroid")
+        if (object->GetType().GetTypeName() == "Asteroid" || object->GetType().GetTypeName() == "SmallAsteroid")
         {
             auto otherAsteroid = std::dynamic_pointer_cast<Asteroid>(object);
             if (otherAsteroid)
@@ -52,7 +56,7 @@ void Asteroid::OnCollision(const GameObjectList& objects)
                 float distanceSquared = deltaPosition.x * deltaPosition.x + deltaPosition.y * deltaPosition.y;
 
                 // Assume both asteroids have the same radius
-                float radius = 20.0f; // Example radius, adjust as needed
+                float radius = 10.0f; // Example radius, adjust as needed
                 float combinedRadius = 2 * radius;
 
                 // Debug output
@@ -80,5 +84,23 @@ void Asteroid::OnCollision(const GameObjectList& objects)
                 }
             }
         }
+		if (object->GetType().GetTypeName() == "Bullet")
+		{
+            int numSmallAsteroids = 1;
+
+            for (int i = 0; i < numSmallAsteroids; i++)
+            {
+                // Create a new small asteroid
+                shared_ptr<SmallAsteroid> smallAsteroid = make_shared<SmallAsteroid>();
+                smallAsteroid->mVelocity = mVelocity * 1.5f;
+                smallAsteroid->mScale = 0.1f;
+                smallAsteroid->SetSprite(mSprite);
+                shared_ptr<BoundingSphere> boundingSphere = make_shared<BoundingSphere>(smallAsteroid, 5.0f);
+                smallAsteroid->SetBoundingShape(std::make_shared<BoundingSphere>(smallAsteroid->GetThisPtr(), 2.0f));
+                mWorld->AddObject(smallAsteroid);
+            }
+
+            mWorld->FlagForRemoval(GetThisPtr());
+		}
     }
 }

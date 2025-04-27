@@ -3,6 +3,10 @@
 #include "Bullet.h"
 #include "Spaceship.h"
 #include "BoundingSphere.h"
+#include "SmallAsteroid.h"
+#include "GameObject.h"
+#include "Asteroid.h"
+#include "BoundingShape.h"
 
 using namespace std;
 
@@ -56,7 +60,7 @@ void Spaceship::Render(void)
 /** Fire the rockets. */
 void Spaceship::Thrust(float t)
 {
-	mThrust = t;
+	mThrust = t * 5;
 	// Increase acceleration in the direction of ship
 	mAcceleration.x = mThrust * cos(DEG2RAD * mAngle);
 	mAcceleration.y = mThrust * sin(DEG2RAD * mAngle);
@@ -65,7 +69,7 @@ void Spaceship::Thrust(float t)
 /** Set the rotation. */
 void Spaceship::Rotate(float r)
 {
-	mRotation = r;
+	mRotation = r * 2.5;
 }
 
 /** Shoot a bullet. */
@@ -102,5 +106,24 @@ bool Spaceship::CollisionTest(shared_ptr<GameObject> o)
 
 void Spaceship::OnCollision(const GameObjectList& objects)
 {
-	mWorld->FlagForRemoval(GetThisPtr());
+	for (auto& object : objects)
+	{
+		// Check if the colliding object is a small asteroid
+		if (object->GetType().GetTypeName() == "SmallAsteroid")
+		{
+			auto smallAsteroid = std::dynamic_pointer_cast<SmallAsteroid>(object);
+			if (smallAsteroid)
+			{
+				mVelocity.x *= 0.001f;
+				mVelocity.y *= 0.001f;
+
+				smallAsteroid->SetVelocity(smallAsteroid->GetVelocity() + GLVector3f(mVelocity.x, mVelocity.y, 0.0f));
+			}
+		}
+
+		if (object->GetType().GetTypeName() == "Asteroid")
+		{
+			mWorld->FlagForRemoval(GetThisPtr());
+		}
+	}
 }
