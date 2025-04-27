@@ -11,7 +11,6 @@
 #include "IPlayerListener.h"
 #include "GameObject.h"
 #include "GameObjectType.h"
-#include "IPlayerListener.h"
 
 class GameObject;
 class Spaceship;
@@ -73,5 +72,4 @@ private:
 	ScoreKeeper mScoreKeeper;
 	Player mPlayer;
 };
-
 #endif

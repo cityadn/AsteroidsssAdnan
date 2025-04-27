@@ -12,6 +12,7 @@ class Player : public IGameWorldListener
 {
 public:
 	double mLives;
+
 	Player() { mLives = 3; }
 	virtual ~Player() {}
 
@@ -41,8 +42,9 @@ public:
 		}
 	}
 
-	
 private:
+	
+
 	typedef std::list< shared_ptr<IPlayerListener> > PlayerListenerList;
 
 	PlayerListenerList mListeners;

@@ -3,10 +3,10 @@
 #include "Bullet.h"
 #include "Spaceship.h"
 #include "BoundingSphere.h"
-#include "SmallAsteroid.h"
-#include "GameObject.h"
-#include "Asteroid.h"
 #include "BoundingShape.h"
+#include "Asteroid.h"
+#include "GameObject.h"
+#include "SmallAsteroid.h"
 
 using namespace std;
 

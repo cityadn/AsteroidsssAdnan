@@ -64,11 +64,11 @@ void Asteroids::Start()
 	// Create some asteroids and add them to the world
 	CreateAsteroids(10);
 
-	// Create power-ups
-	CreatePowerUps(20);
-
 	//Create the GUI
 	CreateGUI();
+
+	//Create power-ups
+	CreatePowerUps(20);
 
 	// Add a player (watcher) to the game world
 	mGameWorld->AddListener(&mPlayer);
@@ -168,7 +168,6 @@ void Asteroids::OnTimer(int value)
 		if (mLevel++) {
 			mPlayer.mLives += 1;
 		}
-		//int num_asteroids = 10 + 2 * mLevel;
 		int num_asteroids = mLevel;
 		CreateAsteroids(num_asteroids);
 	}
@@ -225,22 +224,21 @@ void Asteroids::CreatePowerUps(const uint num_powerups)
 		// Create a generic GameObject for the power-up
 		shared_ptr<GameObject> powerUp = make_shared<GameObject>("PowerUp");
 
-		// Set the position of the power-up randomly within the game world
+		// Set te position of the power-up randomly within the game world.
 		powerUp->SetPosition(GLVector3<float>(rand() % 800, rand() % 600, 0.0f));
 
 		// Set a bounding shape for collision detection
-		powerUp->SetBoundingShape(make_shared<BoundingSphere>(powerUp->GetThisPtr(), 5.0f)); // Example radius
+		powerUp->SetBoundingShape(make_shared<BoundingSphere>(powerUp->GetThisPtr(), 5.0f));
 
 		// Assign the sprite to the power-up
 		Animation* powerup_anim = AnimationManager::GetInstance().GetAnimationByName("powerup");
 		shared_ptr<Sprite> powerup_sprite = make_shared<Sprite>(
 			powerup_anim->GetWidth(), powerup_anim->GetHeight(), powerup_anim);
-		powerUp->SetSprite(powerup_sprite);
 
-		// Add the power-up to the game world
+		// Add the powwr-up to the game world
 		mGameWorld->AddObject(powerUp);
 	}
-}
+	}
 
 void Asteroids::CreateGUI()
 {
@@ -323,3 +321,7 @@ shared_ptr<GameObject> Asteroids::CreateExplosion()
 	explosion->Reset();
 	return explosion;
 }
+
+
+
+
